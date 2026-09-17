@@ -96,6 +96,7 @@ struct Flags {
   bool ignorecase, matchdirs, fromfile, metafirst, gitignore, showinfo;
   bool reverse, fflinks, htmloffset, acl, selinux, condense_singletons;
   bool colorize, ansilines, linktargetcolor, remove_space;
+  bool stats;
   int flimit, compress_indent;
 };
 

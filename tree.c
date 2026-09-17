@@ -27,7 +27,7 @@ char *hversion= "\t\t tree v2.3.2 %s 1996 - 2026 by Steve Baker and Thomas Moore
 /* Globals */
 struct Flags flag;
 struct listingcalls lc;
-
+int max_depth = 0;
 int pattern = 0, maxpattern = 0, ipattern = 0, maxipattern = 0;
 char **patterns = NULL, **ipatterns = NULL;
 
@@ -47,7 +47,6 @@ int *dirs;
 ssize_t Level;
 size_t maxdirs;
 int errors;
-
 char xpattern[PATH_MAX];
 
 int mb_cur_max;
@@ -430,6 +429,17 @@ int main(int argc, char **argv)
 	      flag.matchdirs = (opt_toggle? !flag.matchdirs : true);
 	      break;
 	    }
+      if (!strcmp("--stat",argv[i])) {
+	      j = strlen(argv[i])-1;
+	      flag.stats = (opt_toggle? !flag.stats : true);
+	      break;
+	    }
+      if (!strcmp("--size", argv[i])) {
+        j = strlen(argv[i])-1;
+        flag.s = true;
+        flag.du = true;
+    break;
+}
 	    if ((arg = long_arg(argv, i, &j, &n, "--sort")) != NULL) {
 	      basesort = NULL;
 	      for(k=0;sorts[k].name;k++) {
@@ -619,10 +629,12 @@ int main(int argc, char **argv)
     push_infostack(new_infofile(INFO_PATH, false));
   }
 
-  needfulltree = flag.du || flag.prune || flag.matchdirs || flag.fromfile || flag.condense_singletons;
+  needfulltree = flag.du || flag.prune || flag.matchdirs || flag.fromfile || flag.condense_singletons || flag.stats;
 
   emit_tree(dirname, needfulltree);
-
+  if (flag.stats) {
+    printf("Maximum Depth: %d\n", max_depth);
+}
   if (outfilename != NULL) fclose(outfile);
 
   return errors ? 2 : 0;
@@ -1048,7 +1060,9 @@ struct _info **unix_getfulltree(char *d, u_long lev, dev_t dev, off_t *size, cha
   ssize_t n;
   int tmp_pattern = 0;
   char *last_name;
-
+  if ((int)lev > max_depth) {
+    max_depth = (int)lev;
+}
   *err = NULL;
   if (Level >= 0 && lev > (u_long)Level) return NULL;
   if (flag.xdev && lev == 0) {
